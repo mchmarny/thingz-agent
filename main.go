@@ -9,13 +9,18 @@ import (
 func main() {
 	conf.printHeader()
 
-	p := &providers.CPUProvider{}
-	g, err := p.Get()
+	c := &providers.CPUProvider{}
+
+	d, err := c.Describe()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Panicln(err)
 	}
 
-	log.Print(g)
+	log.Printf("Provider: %s", d.Group)
+
+	for k, n := range d.Metrics {
+		log.Printf("   %s - %s", k, n)
+	}
 
 }

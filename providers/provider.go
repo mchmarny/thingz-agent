@@ -7,6 +7,9 @@ import (
 // Provider describes the metric provider functionality
 type Provider interface {
 
-	// Get metric group
-	Get() (types.MetricGroup, error)
+	// Describe provider capabilities
+	Describe() (*types.Metadata, error)
+
+	// Provide metric group
+	Provide(freq int, out <-chan *types.Metric) error
 }

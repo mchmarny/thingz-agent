@@ -15,38 +15,76 @@ const (
 // CPUProvider is the provider for CPU information
 type CPUProvider struct{}
 
-// Get CPU metric group
-func (p *CPUProvider) Get() (*types.MetricGroup, error) {
+// Describe the CPU metric provider capabilities
+func (p CPUProvider) Describe() (*types.Metadata, error) {
 
-	g := types.NewMetricGroup(GROUP_NAME)
+	m := types.NewMetadata(GROUP_NAME)
 
-	cpu := sigar.Cpu{}
-	if err := cpu.Get(); err != nil {
+	// total CPU
+	m.AddMetric("total", "Total combined CPU")
+	m.AddMetric("user", "User time")
+	m.AddMetric("nice", "Nice time")
+	m.AddMetric("sys", "Sys time")
+	m.AddMetric("idle", "Idle time")
+	m.AddMetric("wait", "Wait time")
+
+	l := sigar.CpuList{}
+	if err := l.Get(); err != nil {
 		log.Fatal(err)
-		return nil, err
+		return m, err
 	}
 
-	g.Add(types.NewMetric("Total", cpu.Total()))
-	g.Add(types.NewMetric("User", cpu.User))
-	g.Add(types.NewMetric("Nice", cpu.Nice))
-	g.Add(types.NewMetric("Sys", cpu.Sys))
-	g.Add(types.NewMetric("Idle", cpu.Idle))
-	g.Add(types.NewMetric("Wait", cpu.Wait))
+	// individual CPUs
+	for i, _ := range l.List {
 
-	cpul := sigar.CpuList{}
-	if err := cpul.Get(); err != nil {
-		log.Fatal(err)
-		return nil, err
+		m.AddMetric(fmt.Sprintf("c%d-total", i), fmt.Sprintf("Total combined for CPU[%d]", i))
+		m.AddMetric(fmt.Sprintf("c%d-user", i), fmt.Sprintf("User time for CPU[%d]", i))
+		m.AddMetric(fmt.Sprintf("c%d-nice", i), fmt.Sprintf("Nice time for CPU[%d]", i))
+		m.AddMetric(fmt.Sprintf("c%d-sys", i), fmt.Sprintf("Sys time for CPU[%d]", i))
+		m.AddMetric(fmt.Sprintf("c%d-idle", i), fmt.Sprintf("Idle time for CPU[%d]", i))
+		m.AddMetric(fmt.Sprintf("c%d-wait", i), fmt.Sprintf("Wait time for CPU[%d]", i))
 	}
 
-	for i, c := range cpul.List {
-		g.Add(types.NewMetric(fmt.Sprintf("C%d-Total", i), c.Total()))
-		g.Add(types.NewMetric(fmt.Sprintf("C%d-User", i), c.User))
-		g.Add(types.NewMetric(fmt.Sprintf("C%d-Nice", i), c.Nice))
-		g.Add(types.NewMetric(fmt.Sprintf("C%d-Sys", i), c.Sys))
-		g.Add(types.NewMetric(fmt.Sprintf("C%d-Idle", i), c.Idle))
-		g.Add(types.NewMetric(fmt.Sprintf("C%d-Wait", i), c.Wait))
+	return m, nil
+}
+
+// Provide CPU metrics
+func (p CPUProvider) Provide(freq int, out chan<- *types.Metric) error {
+
+	// TODO: add loop
+
+	for {
+
+		cpu := sigar.Cpu{}
+		if err := cpu.Get(); err != nil {
+			log.Fatal(err)
+			return err
+		}
+
+		out <- types.NewMetric("total", cpu.Total())
+		out <- types.NewMetric("user", cpu.User)
+		out <- types.NewMetric("nice", cpu.Nice)
+		out <- types.NewMetric("sys", cpu.Sys)
+		out <- types.NewMetric("idle", cpu.Idle)
+		out <- types.NewMetric("wait", cpu.Wait)
+
+		cpul := sigar.CpuList{}
+		if err := cpul.Get(); err != nil {
+			log.Fatal(err)
+			return err
+		}
+
+		for i, c := range cpul.List {
+			out <- types.NewMetric(fmt.Sprintf("c%d-total", i), c.Total())
+			out <- types.NewMetric(fmt.Sprintf("c%d-user", i), c.User)
+			out <- types.NewMetric(fmt.Sprintf("c%d-nice", i), c.Nice)
+			out <- types.NewMetric(fmt.Sprintf("c%d-sys", i), c.Sys)
+			out <- types.NewMetric(fmt.Sprintf("c%d-idle", i), c.Idle)
+			out <- types.NewMetric(fmt.Sprintf("c%d-wait", i), c.Wait)
+		}
+
+		return nil
+
 	}
 
-	return g, nil
 }
