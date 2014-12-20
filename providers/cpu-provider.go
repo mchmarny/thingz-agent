@@ -3,6 +3,7 @@ package providers
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/cloudfoundry/gosigar"
 	"github.com/mchmarny/thingz/types"
@@ -49,11 +50,13 @@ func (p CPUProvider) Describe() (*types.Metadata, error) {
 }
 
 // Provide CPU metrics
-func (p CPUProvider) Provide(freq int, out chan<- *types.Metric) error {
+func (p CPUProvider) Provide(freq time.Duration, out chan<- *types.Metric) error {
 
-	// TODO: add loop
+	ticker := time.NewTicker(freq)
 
-	for {
+	for t := range ticker.C {
+
+		log.Println("Provider at: ", t)
 
 		cpu := sigar.Cpu{}
 		if err := cpu.Get(); err != nil {
@@ -83,8 +86,8 @@ func (p CPUProvider) Provide(freq int, out chan<- *types.Metric) error {
 			out <- types.NewMetric(fmt.Sprintf("c%d-wait", i), c.Wait)
 		}
 
-		return nil
-
 	}
+
+	return nil
 
 }
