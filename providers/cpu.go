@@ -9,17 +9,21 @@ import (
 	"github.com/mchmarny/thingz/types"
 )
 
-const (
-	GROUP_NAME = "CPU"
-)
-
 // CPUProvider is the provider for CPU information
-type CPUProvider struct{}
+type CPUProvider struct {
+	Group     string
+	Frequency time.Duration
+}
+
+// SetFrequency of execution
+func (p CPUProvider) SetFrequency(f time.Duration) {
+	p.Frequency = f
+}
 
 // Describe the CPU metric provider capabilities
 func (p CPUProvider) Describe() (*types.Metadata, error) {
 
-	m := types.NewMetadata(GROUP_NAME)
+	m := types.NewMetadata(p.Group)
 
 	// total CPU
 	m.AddMetric("total", "Total combined CPU")
@@ -50,13 +54,13 @@ func (p CPUProvider) Describe() (*types.Metadata, error) {
 }
 
 // Provide CPU metrics
-func (p CPUProvider) Provide(freq time.Duration, out chan<- *types.Metric) error {
+func (p CPUProvider) Provide(out chan<- *types.Metric) error {
 
-	ticker := time.NewTicker(freq)
+	ticker := time.NewTicker(p.Frequency)
 
 	for t := range ticker.C {
 
-		log.Println("Provider at: ", t)
+		log.Println("%s provider at %v", p.Group, t)
 
 		cpu := sigar.Cpu{}
 		if err := cpu.Get(); err != nil {
@@ -64,12 +68,24 @@ func (p CPUProvider) Provide(freq time.Duration, out chan<- *types.Metric) error
 			return err
 		}
 
-		out <- types.NewMetric("total", cpu.Total())
-		out <- types.NewMetric("user", cpu.User)
-		out <- types.NewMetric("nice", cpu.Nice)
-		out <- types.NewMetric("sys", cpu.Sys)
-		out <- types.NewMetric("idle", cpu.Idle)
-		out <- types.NewMetric("wait", cpu.Wait)
+		go func() {
+			out <- types.NewMetric(p.Group, "total", cpu.Total())
+		}()
+		go func() {
+			out <- types.NewMetric(p.Group, "user", cpu.User)
+		}()
+		go func() {
+			out <- types.NewMetric(p.Group, "nice", cpu.Nice)
+		}()
+		go func() {
+			out <- types.NewMetric(p.Group, "sys", cpu.Sys)
+		}()
+		go func() {
+			out <- types.NewMetric(p.Group, "idle", cpu.Idle)
+		}()
+		go func() {
+			out <- types.NewMetric(p.Group, "wait", cpu.Wait)
+		}()
 
 		cpul := sigar.CpuList{}
 		if err := cpul.Get(); err != nil {
@@ -78,12 +94,30 @@ func (p CPUProvider) Provide(freq time.Duration, out chan<- *types.Metric) error
 		}
 
 		for i, c := range cpul.List {
-			out <- types.NewMetric(fmt.Sprintf("c%d-total", i), c.Total())
-			out <- types.NewMetric(fmt.Sprintf("c%d-user", i), c.User)
-			out <- types.NewMetric(fmt.Sprintf("c%d-nice", i), c.Nice)
-			out <- types.NewMetric(fmt.Sprintf("c%d-sys", i), c.Sys)
-			out <- types.NewMetric(fmt.Sprintf("c%d-idle", i), c.Idle)
-			out <- types.NewMetric(fmt.Sprintf("c%d-wait", i), c.Wait)
+			go func() {
+				out <- types.NewMetric(p.Group,
+					fmt.Sprintf("c%d-total", i), c.Total())
+			}()
+			go func() {
+				out <- types.NewMetric(p.Group,
+					fmt.Sprintf("c%d-user", i), c.User)
+			}()
+			go func() {
+				out <- types.NewMetric(p.Group,
+					fmt.Sprintf("c%d-nice", i), c.Nice)
+			}()
+			go func() {
+				out <- types.NewMetric(p.Group,
+					fmt.Sprintf("c%d-sys", i), c.Sys)
+			}()
+			go func() {
+				out <- types.NewMetric(p.Group,
+					fmt.Sprintf("c%d-idle", i), c.Idle)
+			}()
+			go func() {
+				out <- types.NewMetric(p.Group,
+					fmt.Sprintf("c%d-wait", i), c.Wait)
+			}()
 		}
 
 	}

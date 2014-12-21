@@ -1,12 +1,14 @@
 package types
 
 import (
+	"fmt"
 	"time"
 )
 
 // NewMetric is a factory method for Metric
-func NewMetric(dimension string, value interface{}) *Metric {
+func NewMetric(group, dimension string, value interface{}) *Metric {
 	return &Metric{
+		Group:     group,
 		Timestamp: time.Now(),
 		Dimension: dimension,
 		Value:     value,
@@ -16,17 +18,20 @@ func NewMetric(dimension string, value interface{}) *Metric {
 // Metric represents a generic metric collection event
 type Metric struct {
 
+	// Group this metric represents
+	Group string `json:"g"`
+
 	// Timestamp of when the metric was captured
-	Timestamp time.Time `json:"ts"`
+	Timestamp time.Time `json:"t"`
 
 	// Dimension this metric represents
-	Dimension string `json:"dim"`
+	Dimension string `json:"d"`
 
 	// Value of this metric
-	Value interface{} `json:"val"`
+	Value interface{} `json:"v"`
 
 	// Unit of this metric
-	Unit string `json:"unit,omitempty"`
+	Unit string `json:"u,omitempty"`
 
 	// Context data for this metric
 	Context map[string]string `json:"ctx,omitempty"`
@@ -49,4 +54,11 @@ func (m *Metric) AddContext(key, val string) *Metric {
 
 	m.Context[key] = val
 	return m
+}
+
+func (m *Metric) String() string {
+	return fmt.Sprintf(
+		"Metric: [ Group:%s, Dimension:%s, Timestamp:%v, Value:%v, Unit:%s, Context:%v ]",
+		m.Group, m.Dimension, m.Timestamp, m.Value, m.Unit, m.Context,
+	)
 }
