@@ -1,6 +1,7 @@
 package publishers
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 	"strings"
@@ -93,4 +94,10 @@ func parseConfig(connStr string) (*flux.ClientConfig, error) {
 	c.Database = strings.Replace(u.Path, "/", "", -1)
 
 	return c, nil
+}
+
+func printQueries() {
+
+	fmt.Println("select total, user, sys from cpu group by time(10s) where time > now() - 30m limit 1000;")
+
 }
