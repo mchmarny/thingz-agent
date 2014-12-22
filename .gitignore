@@ -24,4 +24,4 @@ _testmain.go
 *.prof
 
 # binary
-thingz
+thingz-agent
