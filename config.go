@@ -21,7 +21,7 @@ func init() {
 	flag.BoolVar(&conf.Verbose, "verbose", false, "Debug info")
 	flag.StringVar(&conf.Source, "source", hostname, "Event source")
 	flag.StringVar(&conf.Strategy, "strategy", "cpu:1,mem:3", "Provider strategy")
-	flag.StringVar(&conf.Publisher, "strategy", "stdout", "Publishing target")
+	flag.StringVar(&conf.Publisher, "publisher", "stdout", "Publishing target")
 
 	conf.Version = APP_VERSION
 

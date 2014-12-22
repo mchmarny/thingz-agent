@@ -54,13 +54,11 @@ func (p CPUProvider) Describe() (*types.Metadata, error) {
 }
 
 // Provide CPU metrics
-func (p CPUProvider) Provide(out chan<- *types.Metric) error {
+func (p CPUProvider) Provide(out chan<- *types.MetricCollection) error {
 
 	ticker := time.NewTicker(p.Frequency)
 
 	for t := range ticker.C {
-
-		log.Println("%s provider at %v", p.Group, t)
 
 		cpu := sigar.Cpu{}
 		if err := cpu.Get(); err != nil {
@@ -68,24 +66,14 @@ func (p CPUProvider) Provide(out chan<- *types.Metric) error {
 			return err
 		}
 
-		go func() {
-			out <- types.NewMetric(p.Group, "total", cpu.Total())
-		}()
-		go func() {
-			out <- types.NewMetric(p.Group, "user", cpu.User)
-		}()
-		go func() {
-			out <- types.NewMetric(p.Group, "nice", cpu.Nice)
-		}()
-		go func() {
-			out <- types.NewMetric(p.Group, "sys", cpu.Sys)
-		}()
-		go func() {
-			out <- types.NewMetric(p.Group, "idle", cpu.Idle)
-		}()
-		go func() {
-			out <- types.NewMetric(p.Group, "wait", cpu.Wait)
-		}()
+		col := types.NewMetricCollection(p.Group, t)
+
+		col.Add(types.NewMetric(p.Group, "total", cpu.Total()))
+		col.Add(types.NewMetric(p.Group, "user", cpu.User))
+		col.Add(types.NewMetric(p.Group, "nice", cpu.Nice))
+		col.Add(types.NewMetric(p.Group, "sys", cpu.Sys))
+		col.Add(types.NewMetric(p.Group, "idle", cpu.Idle))
+		col.Add(types.NewMetric(p.Group, "wait", cpu.Wait))
 
 		cpul := sigar.CpuList{}
 		if err := cpul.Get(); err != nil {
@@ -94,31 +82,15 @@ func (p CPUProvider) Provide(out chan<- *types.Metric) error {
 		}
 
 		for i, c := range cpul.List {
-			go func() {
-				out <- types.NewMetric(p.Group,
-					fmt.Sprintf("c%d-total", i), c.Total())
-			}()
-			go func() {
-				out <- types.NewMetric(p.Group,
-					fmt.Sprintf("c%d-user", i), c.User)
-			}()
-			go func() {
-				out <- types.NewMetric(p.Group,
-					fmt.Sprintf("c%d-nice", i), c.Nice)
-			}()
-			go func() {
-				out <- types.NewMetric(p.Group,
-					fmt.Sprintf("c%d-sys", i), c.Sys)
-			}()
-			go func() {
-				out <- types.NewMetric(p.Group,
-					fmt.Sprintf("c%d-idle", i), c.Idle)
-			}()
-			go func() {
-				out <- types.NewMetric(p.Group,
-					fmt.Sprintf("c%d-wait", i), c.Wait)
-			}()
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-total", i), c.Total()))
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-user", i), c.User))
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-nice", i), c.Nice))
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-sys", i), c.Sys))
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-idle", i), c.Idle))
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-wait", i), c.Wait))
 		}
+
+		out <- col
 
 	}
 

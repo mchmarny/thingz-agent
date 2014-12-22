@@ -15,5 +15,5 @@ type Provider interface {
 	Describe() (*types.Metadata, error)
 
 	// Provide metric group
-	Provide(out chan<- *types.Metric) error
+	Provide(out chan<- *types.MetricCollection) error
 }

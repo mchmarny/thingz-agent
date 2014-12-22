@@ -33,13 +33,11 @@ func (p LoadProvider) Describe() (*types.Metadata, error) {
 }
 
 // Provide load metrics
-func (p LoadProvider) Provide(out chan<- *types.Metric) error {
+func (p LoadProvider) Provide(out chan<- *types.MetricCollection) error {
 
 	ticker := time.NewTicker(p.Frequency)
 
 	for t := range ticker.C {
-
-		log.Println("%s provider at %v", p.Group, t)
 
 		src := sigar.LoadAverage{}
 		if err := src.Get(); err != nil {
@@ -47,15 +45,13 @@ func (p LoadProvider) Provide(out chan<- *types.Metric) error {
 			return err
 		}
 
-		go func() {
-			out <- types.NewMetric(p.Group, "min1", src.One)
-		}()
-		go func() {
-			out <- types.NewMetric(p.Group, "min5", src.Five)
-		}()
-		go func() {
-			out <- types.NewMetric(p.Group, "min15", src.Fifteen)
-		}()
+		col := types.NewMetricCollection(p.Group, t)
+
+		col.Add(types.NewMetric(p.Group, "min1", src.One))
+		col.Add(types.NewMetric(p.Group, "min5", src.Five))
+		col.Add(types.NewMetric(p.Group, "min15", src.Fifteen))
+
+		out <- col
 
 	}
 

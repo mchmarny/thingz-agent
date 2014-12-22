@@ -35,13 +35,11 @@ func (p MemoryProvider) Describe() (*types.Metadata, error) {
 }
 
 // Provide memory metrics
-func (p MemoryProvider) Provide(out chan<- *types.Metric) error {
+func (p MemoryProvider) Provide(out chan<- *types.MetricCollection) error {
 
 	ticker := time.NewTicker(p.Frequency)
 
 	for t := range ticker.C {
-
-		log.Println("%s provider at %v", p.Group, t)
 
 		src := sigar.Mem{}
 		if err := src.Get(); err != nil {
@@ -49,21 +47,15 @@ func (p MemoryProvider) Provide(out chan<- *types.Metric) error {
 			return err
 		}
 
-		go func() {
-			out <- types.NewMetric(p.Group, "free", src.Free)
-		}()
-		go func() {
-			out <- types.NewMetric(p.Group, "used", src.Used)
-		}()
-		go func() {
-			out <- types.NewMetric(p.Group, "actual-free", src.ActualFree)
-		}()
-		go func() {
-			out <- types.NewMetric(p.Group, "actual-used", src.ActualUsed)
-		}()
-		go func() {
-			out <- types.NewMetric(p.Group, "total", src.Total)
-		}()
+		col := types.NewMetricCollection(p.Group, t)
+
+		col.Add(types.NewMetric(p.Group, "free", src.Free))
+		col.Add(types.NewMetric(p.Group, "used", src.Used))
+		col.Add(types.NewMetric(p.Group, "actual-free", src.ActualFree))
+		col.Add(types.NewMetric(p.Group, "actual-used", src.ActualUsed))
+		col.Add(types.NewMetric(p.Group, "total", src.Total))
+
+		out <- col
 
 	}
 

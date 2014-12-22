@@ -97,7 +97,7 @@ func (c *collector) collect() error {
 
 	chCount := 0
 
-	log.Println("Providers:")
+	log.Println("Describing providers:")
 	for k, p := range c.providers {
 		d, err := p.Describe()
 		if err != nil {
@@ -111,11 +111,11 @@ func (c *collector) collect() error {
 	log.Printf("Creating %d channels", chCount)
 
 	errCh := make(chan error, 1)
-	metricCh := make(chan *types.Metric, chCount)
+	metricCh := make(chan *types.MetricCollection, chCount)
 
 	// start the collection routines
 	for _, p := range c.providers {
-		log.Printf("Starting collector: %v", p)
+		log.Printf("Starting collector for %v", p)
 		go p.Provide(metricCh)
 	}
 
@@ -123,8 +123,8 @@ func (c *collector) collect() error {
 		select {
 		case err := <-errCh:
 			log.Printf("Error: %v", err)
-		case metric := <-metricCh:
-			c.publisher.Publish(metric)
+		case col := <-metricCh:
+			c.publisher.Publish(col)
 		default:
 			// nothing to do
 		}

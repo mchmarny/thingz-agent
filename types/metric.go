@@ -8,7 +8,6 @@ import (
 // NewMetric is a factory method for Metric
 func NewMetric(group, dimension string, value interface{}) *Metric {
 	return &Metric{
-		Group:     group,
 		Timestamp: time.Now(),
 		Dimension: dimension,
 		Value:     value,
@@ -17,9 +16,6 @@ func NewMetric(group, dimension string, value interface{}) *Metric {
 
 // Metric represents a generic metric collection event
 type Metric struct {
-
-	// Group this metric represents
-	Group string `json:"g"`
 
 	// Timestamp of when the metric was captured
 	Timestamp time.Time `json:"t"`
@@ -58,7 +54,7 @@ func (m *Metric) AddContext(key, val string) *Metric {
 
 func (m *Metric) String() string {
 	return fmt.Sprintf(
-		"Metric: [ Group:%s, Dimension:%s, Timestamp:%v, Value:%v, Unit:%s, Context:%v ]",
-		m.Group, m.Dimension, m.Timestamp, m.Value, m.Unit, m.Context,
+		"Metric: [ Dimension:%s, Timestamp:%v, Value:%v, Unit:%s, Context:%v ]",
+		m.Dimension, m.Timestamp, m.Value, m.Unit, m.Context,
 	)
 }
