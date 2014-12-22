@@ -7,13 +7,8 @@ import (
 )
 
 const (
-	APP_VERSION   = "0.0.1"
-	FORMAT_ERROR  = "Invalid strategy format: "
-	STRATEGY_CPU  = "cpu"
-	STRATEGY_MEM  = "mem"
-	STRATEGY_SWAP = "swap"
-	STRATEGY_LOAD = "load"
-	PUB_CONSOLE   = "stdout"
+	APP_VERSION  = "0.0.1"
+	FORMAT_ERROR = "Invalid strategy format: "
 )
 
 func init() {

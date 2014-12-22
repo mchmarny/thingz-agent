@@ -1,7 +1,7 @@
 package providers
 
 import (
-	"github.com/mchmarny/thingz/types"
+	"github.com/mchmarny/thingz-agent/types"
 	"time"
 )
 

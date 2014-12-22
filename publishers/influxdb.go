@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	flux "github.com/influxdb/influxdb/client"
-	"github.com/mchmarny/thingz/types"
+	"github.com/mchmarny/thingz-agent/types"
 )
 
 // NewInfluxDBPublisher parses connection string to InfluxDB
 // and returned a configured version of the publisher
-func NewInfluxDBPublisher(connStr string) (Publisher, error) {
+func NewInfluxDBPublisher(src, connStr string) (Publisher, error) {
 	c, err := parseConfig(connStr)
 	if err != nil {
 		log.Fatalf("Invalid connection string: %v", err)
@@ -27,6 +27,7 @@ func NewInfluxDBPublisher(connStr string) (Publisher, error) {
 	}
 
 	p := InfluxDBPublisher{
+		Source: src,
 		Config: c,
 		Client: client,
 	}
@@ -35,6 +36,7 @@ func NewInfluxDBPublisher(connStr string) (Publisher, error) {
 }
 
 type InfluxDBPublisher struct {
+	Source string
 	Config *flux.ClientConfig
 	Client *flux.Client
 }
@@ -50,7 +52,7 @@ func (p InfluxDBPublisher) Publish(m *types.MetricCollection) error {
 	}
 
 	s := &flux.Series{
-		Name:    m.Group,
+		Name:    fmt.Sprintf("%s-%s", p.Source, m.Group),
 		Columns: keys,
 		Points:  [][]interface{}{vals},
 	}
@@ -94,10 +96,4 @@ func parseConfig(connStr string) (*flux.ClientConfig, error) {
 	c.Database = strings.Replace(u.Path, "/", "", -1)
 
 	return c, nil
-}
-
-func printQueries() {
-
-	fmt.Println("select total, user, sys from cpu group by time(10s) where time > now() - 30m limit 1000;")
-
 }

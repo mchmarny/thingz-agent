@@ -7,9 +7,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mchmarny/thingz/providers"
-	"github.com/mchmarny/thingz/publishers"
-	"github.com/mchmarny/thingz/types"
+	"github.com/mchmarny/thingz-agent/providers"
+	"github.com/mchmarny/thingz-agent/publishers"
+	"github.com/mchmarny/thingz-agent/types"
+)
+
+const (
+	STRATEGY_CPU  = "cpu"
+	STRATEGY_CPUS = "cpus"
+	STRATEGY_MEM  = "mem"
+	STRATEGY_SWAP = "swap"
+	STRATEGY_LOAD = "load"
+	PUB_CONSOLE   = "stdout"
 )
 
 func newCollector() (*collector, error) {
@@ -25,7 +34,7 @@ func newCollector() (*collector, error) {
 		pub, err = publishers.NewConsolePublisher()
 	} else {
 		log.Println("Using InfluxDB publisher")
-		pub, err = publishers.NewInfluxDBPublisher(conf.Publisher)
+		pub, err = publishers.NewInfluxDBPublisher(conf.Source, conf.Publisher)
 	}
 	if err != nil {
 		log.Fatalln("Error while creating publisher")
@@ -54,6 +63,11 @@ func newCollector() (*collector, error) {
 		switch group {
 		case STRATEGY_CPU:
 			c.providers[group] = providers.CPUProvider{
+				Group:     group,
+				Frequency: freq,
+			}
+		case STRATEGY_CPUS:
+			c.providers[group] = providers.CPUSProvider{
 				Group:     group,
 				Frequency: freq,
 			}

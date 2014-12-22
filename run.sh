@@ -1,5 +1,5 @@
 #!/bin/bash
 
-./thingz -source=laptop \
-         -strategy=cpu:1,mem:1,swap:5,load:5 \
-         -publisher="http://test:test@127.0.0.1:8086/thingz"
+./thingz-agent -source=demo \
+               -strategy=cpu:3,cpus:5,mem:3,swap:10,load:15 \
+               -publisher="http://thingz:thingz@localhost:8086/thingz"

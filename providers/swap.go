@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/gosigar"
-	"github.com/mchmarny/thingz/types"
+	"github.com/mchmarny/thingz-agent/types"
 )
 
 // SwapProvider is the provider for swap information

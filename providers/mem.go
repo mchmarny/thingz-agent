@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/gosigar"
-	"github.com/mchmarny/thingz/types"
+	"github.com/mchmarny/thingz-agent/types"
 )
 
 // MemoryProvider is the provider for memory information
@@ -27,8 +27,8 @@ func (p MemoryProvider) Describe() (*types.Metadata, error) {
 	// total CPU
 	m.AddMetric("free", "Amount of free memory")
 	m.AddMetric("used", "Amount of used memory")
-	m.AddMetric("actual-free", "Amount of actual free memory")
-	m.AddMetric("actual-used", "Amount of actual used memory")
+	m.AddMetric("afree", "Amount of actual free memory")
+	m.AddMetric("aused", "Amount of actual used memory")
 	m.AddMetric("total", "Amount of total memory")
 
 	return m, nil

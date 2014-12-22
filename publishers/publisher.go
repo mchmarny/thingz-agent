@@ -1,7 +1,7 @@
 package publishers
 
 import (
-	"github.com/mchmarny/thingz/types"
+	"github.com/mchmarny/thingz-agent/types"
 )
 
 // Publisher describes the metric publisher functionality
