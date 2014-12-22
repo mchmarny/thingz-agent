@@ -12,31 +12,29 @@ import (
 	"github.com/mchmarny/thingz/types"
 )
 
-const (
-	FORMAT_ERROR = "Invalid strategy format: "
-
-	STRATEGY_CPU  = "cpu"
-	STRATEGY_MEM  = "mem"
-	STRATEGY_SWAP = "swap"
-	STRATEGY_LOAD = "load"
-
-	PUB_CONSOLE = "stdout"
-)
-
 func newCollector() (*collector, error) {
 
 	c := &collector{
 		providers: make(map[string]providers.Provider),
 	}
 
-	// TODO: Derive publisher dynamically
+	var pub publishers.Publisher
+	var err error
 	if conf.Publisher == PUB_CONSOLE {
-		c.publisher = publishers.ConsolePublisher{}
+		log.Println("Using console publisher")
+		pub, err = publishers.NewConsolePublisher()
+	} else {
+		log.Println("Using InfluxDB publisher")
+		pub, err = publishers.NewInfluxDBPublisher(conf.Publisher)
 	}
+	if err != nil {
+		log.Fatalln("Error while creating publisher")
+		return nil, err
+	}
+	c.publisher = pub
 
-	for i, p := range strings.Split(conf.Strategy, ",") {
+	for _, p := range strings.Split(conf.Strategy, ",") {
 
-		log.Printf("Parsing strategy[%d]:%s", i, p)
 		strategy := strings.Split(strings.Trim(p, " "), ":")
 		if len(strategy) != 2 {
 			log.Fatal(FORMAT_ERROR)
@@ -52,8 +50,6 @@ func newCollector() (*collector, error) {
 
 		freq := time.Duration(int32(n)) * time.Second
 		group := strings.ToLower(strings.Trim(strategy[0], " "))
-
-		log.Printf("Loading %s provider", group)
 
 		switch group {
 		case STRATEGY_CPU:
@@ -95,23 +91,8 @@ type collector struct {
 //
 func (c *collector) collect() error {
 
-	chCount := 0
-
-	log.Println("Describing providers:")
-	for k, p := range c.providers {
-		d, err := p.Describe()
-		if err != nil {
-			log.Fatal(err)
-			return err
-		}
-		log.Printf("   %s - %v", k, d)
-		chCount += len(d.Metrics)
-	}
-
-	log.Printf("Creating %d channels", chCount)
-
 	errCh := make(chan error, 1)
-	metricCh := make(chan *types.MetricCollection, chCount)
+	metricCh := make(chan *types.MetricCollection, len(c.providers))
 
 	// start the collection routines
 	for _, p := range c.providers {
@@ -124,7 +105,7 @@ func (c *collector) collect() error {
 		case err := <-errCh:
 			log.Printf("Error: %v", err)
 		case col := <-metricCh:
-			c.publisher.Publish(col)
+			go c.publisher.Publish(col)
 		default:
 			// nothing to do
 		}

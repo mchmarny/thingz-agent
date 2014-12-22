@@ -7,7 +7,8 @@ import (
 )
 
 func main() {
-	conf.printHeader()
+
+	log.Printf("Version: %s", APP_VERSION)
 
 	// make sure we can shutdown gracefully
 	sigCh := make(chan os.Signal, 1)

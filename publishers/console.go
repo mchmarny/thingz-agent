@@ -10,6 +10,10 @@ const (
 	LINE = "------------------------------------------------------"
 )
 
+func NewConsolePublisher() (Publisher, error) {
+	return ConsolePublisher{}, nil
+}
+
 type ConsolePublisher struct{}
 
 func (p ConsolePublisher) Publish(m *types.MetricCollection) error {

@@ -1,7 +1,5 @@
 #!/bin/bash
 
-go build
-
-./thingz -verbose=true \
-         -source=laptop \
-         -strategy=cpu:3,mem:3,swap:60,load:5
+./thingz -source=laptop \
+         -strategy=cpu:1,mem:1,swap:5,load:5 \
+         -publisher="http://test:test@127.0.0.1:8086/thingz"
