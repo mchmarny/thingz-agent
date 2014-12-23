@@ -34,12 +34,12 @@ func (p CPUSProvider) Describe() (*types.Metadata, error) {
 	// individual CPUs
 	for i, _ := range l.List {
 
-		m.AddMetric(fmt.Sprintf("c%d-total", i), fmt.Sprintf("Total combined for CPU[%d]", i))
-		m.AddMetric(fmt.Sprintf("c%d-user", i), fmt.Sprintf("User time for CPU[%d]", i))
-		m.AddMetric(fmt.Sprintf("c%d-nice", i), fmt.Sprintf("Nice time for CPU[%d]", i))
-		m.AddMetric(fmt.Sprintf("c%d-sys", i), fmt.Sprintf("Sys time for CPU[%d]", i))
-		m.AddMetric(fmt.Sprintf("c%d-idle", i), fmt.Sprintf("Idle time for CPU[%d]", i))
-		m.AddMetric(fmt.Sprintf("c%d-wait", i), fmt.Sprintf("Wait time for CPU[%d]", i))
+		m.AddMetric(fmt.Sprintf("total-%d", i), fmt.Sprintf("Total combined for CPU[%d]", i))
+		m.AddMetric(fmt.Sprintf("user-%d", i), fmt.Sprintf("User time for CPU[%d]", i))
+		m.AddMetric(fmt.Sprintf("nice-%d", i), fmt.Sprintf("Nice time for CPU[%d]", i))
+		m.AddMetric(fmt.Sprintf("sys-%d", i), fmt.Sprintf("Sys time for CPU[%d]", i))
+		m.AddMetric(fmt.Sprintf("idle-%d", i), fmt.Sprintf("Idle time for CPU[%d]", i))
+		m.AddMetric(fmt.Sprintf("wait-%d", i), fmt.Sprintf("Wait time for CPU[%d]", i))
 	}
 
 	return m, nil
@@ -61,12 +61,12 @@ func (p CPUSProvider) Provide(out chan<- *types.MetricCollection) error {
 		col := types.NewMetricCollection(p.Group, t)
 
 		for i, c := range cpul.List {
-			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-total", i), c.Total()))
-			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-user", i), c.User))
-			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-nice", i), c.Nice))
-			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-sys", i), c.Sys))
-			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-idle", i), c.Idle))
-			col.Add(types.NewMetric(p.Group, fmt.Sprintf("c%d-wait", i), c.Wait))
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("total-%d", i), c.Total()))
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("user-%d", i), c.User))
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("nice-%d", i), c.Nice))
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("sys-%d", i), c.Sys))
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("idle-%d", i), c.Idle))
+			col.Add(types.NewMetric(p.Group, fmt.Sprintf("wait-%d", i), c.Wait))
 		}
 
 		out <- col
