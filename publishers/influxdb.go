@@ -43,6 +43,41 @@ type InfluxDBPublisher struct {
 
 func (p InfluxDBPublisher) Publish(m *types.MetricCollection) error {
 
+	list := make([]*flux.Series, 0)
+
+	for _, v := range m.Metrics {
+
+		s := &flux.Series{
+			Name:    fmt.Sprintf("%s.%s.%s", p.Source, m.Group, v.Dimension),
+			Columns: []string{"value"},
+			Points:  [][]interface{}{{v.Value}},
+		}
+
+		list = append(list, s)
+	}
+
+	var sendErr error
+	if p.Config.IsUDP {
+		sendErr = p.Client.WriteSeriesOverUDP(list)
+	} else {
+		sendErr = p.Client.WriteSeries(list)
+	}
+
+	if sendErr != nil {
+		log.Printf("H:%s U:%s P:%s D:%s",
+			p.Config.Host, p.Config.Username, p.Config.Password, p.Config.Database)
+		log.Fatalf("Error on series write: %v", sendErr)
+		return sendErr
+	} else {
+		return nil
+	}
+
+}
+
+/*
+
+func (p InfluxDBPublisher) Publish(m *types.MetricCollection) error {
+
 	keys := make([]string, 0, len(m.Metrics))
 	vals := make([]interface{}, 0, len(m.Metrics))
 
@@ -75,6 +110,8 @@ func (p InfluxDBPublisher) Publish(m *types.MetricCollection) error {
 	}
 
 }
+
+*/
 
 // parseConfig parses connStr string into an InfluxDB config
 //    http://user:password@127.0.0.1:8086/dbname

@@ -34,7 +34,10 @@ func newCollector() (*collector, error) {
 		pub, err = publishers.NewConsolePublisher()
 	} else {
 		log.Println("Using InfluxDB publisher")
-		pub, err = publishers.NewInfluxDBPublisher(conf.Source, conf.Publisher)
+		pub, err = publishers.NewInfluxDBPublisher(
+			conf.Source,
+			conf.Publisher,
+		)
 	}
 	if err != nil {
 		log.Fatalln("Error while creating publisher")
