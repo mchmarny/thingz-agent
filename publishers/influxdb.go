@@ -52,7 +52,7 @@ func (p InfluxDBPublisher) Publish(m *types.MetricCollection) error {
 	}
 
 	s := &flux.Series{
-		Name:    fmt.Sprintf("%s-%s", p.Source, m.Group),
+		Name:    fmt.Sprintf("%s.%s", p.Source, m.Group),
 		Columns: keys,
 		Points:  [][]interface{}{vals},
 	}
