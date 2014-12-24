@@ -19,22 +19,6 @@ func (p CPUProvider) SetFrequency(f time.Duration) {
 	p.Frequency = f
 }
 
-// Describe the CPU metric provider capabilities
-func (p CPUProvider) Describe() (*types.Metadata, error) {
-
-	m := types.NewMetadata(p.Group)
-
-	// total CPU
-	m.AddMetric("total", "Total combined CPU")
-	m.AddMetric("user", "User time")
-	m.AddMetric("nice", "Nice time")
-	m.AddMetric("sys", "Sys time")
-	m.AddMetric("idle", "Idle time")
-	m.AddMetric("wait", "Wait time")
-
-	return m, nil
-}
-
 // Provide CPU metrics
 func (p CPUProvider) Provide(out chan<- *types.MetricCollection) error {
 

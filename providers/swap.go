@@ -19,19 +19,6 @@ func (p SwapProvider) SetFrequency(f time.Duration) {
 	p.Frequency = f
 }
 
-// Describe the swap metric provider capabilities
-func (p SwapProvider) Describe() (*types.Metadata, error) {
-
-	m := types.NewMetadata(p.Group)
-
-	// total CPU
-	m.AddMetric("free", "Amount of free swap memory")
-	m.AddMetric("used", "Amount of used swap memory")
-	m.AddMetric("total", "Amount of total swap memory")
-
-	return m, nil
-}
-
 // Provide swap metrics
 func (p SwapProvider) Provide(out chan<- *types.MetricCollection) error {
 

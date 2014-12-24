@@ -23,10 +23,7 @@ const (
 
 func newCollector() (*collector, error) {
 
-	c := &collector{
-		providers: make(map[string]providers.Provider),
-	}
-
+	// Load publisher
 	var pub publishers.Publisher
 	var err error
 	if conf.Publisher == PUB_CONSOLE {
@@ -43,17 +40,23 @@ func newCollector() (*collector, error) {
 		log.Fatalln("Error while creating publisher")
 		return nil, err
 	}
-	c.publisher = pub
+
+	// Load collector
+	c := &collector{
+		providers: make(map[string]providers.Provider),
+		publisher: pub,
+	}
 
 	for _, p := range strings.Split(conf.Strategy, ",") {
 
+		// get strategy
 		strategy := strings.Split(strings.Trim(p, " "), ":")
 		if len(strategy) != 2 {
 			log.Fatal(FORMAT_ERROR)
 			return nil, errors.New(FORMAT_ERROR + p)
 		}
 
-		// frequency of execution
+		// frequency of execution for this strategy
 		n, err := strconv.Atoi(strategy[1])
 		if err != nil {
 			log.Fatal(err)
@@ -105,7 +108,7 @@ type collector struct {
 	publisher publishers.Publisher
 }
 
-//
+// collect
 func (c *collector) collect() error {
 
 	errCh := make(chan error, 1)

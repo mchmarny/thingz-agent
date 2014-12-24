@@ -19,21 +19,6 @@ func (p MemoryProvider) SetFrequency(f time.Duration) {
 	p.Frequency = f
 }
 
-// Describe the memory metric provider capabilities
-func (p MemoryProvider) Describe() (*types.Metadata, error) {
-
-	m := types.NewMetadata(p.Group)
-
-	// total CPU
-	m.AddMetric("free", "Amount of free memory")
-	m.AddMetric("used", "Amount of used memory")
-	m.AddMetric("afree", "Amount of actual free memory")
-	m.AddMetric("aused", "Amount of actual used memory")
-	m.AddMetric("total", "Amount of total memory")
-
-	return m, nil
-}
-
 // Provide memory metrics
 func (p MemoryProvider) Provide(out chan<- *types.MetricCollection) error {
 

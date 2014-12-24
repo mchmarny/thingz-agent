@@ -19,19 +19,6 @@ func (p LoadProvider) SetFrequency(f time.Duration) {
 	p.Frequency = f
 }
 
-// Describe the load metric provider capabilities
-func (p LoadProvider) Describe() (*types.Metadata, error) {
-
-	m := types.NewMetadata(p.Group)
-
-	// total CPU
-	m.AddMetric("min1", "Average load for 1 min")
-	m.AddMetric("min5", "Average load for 5 min")
-	m.AddMetric("min15", "Average load for 15 min")
-
-	return m, nil
-}
-
 // Provide load metrics
 func (p LoadProvider) Provide(out chan<- *types.MetricCollection) error {
 
