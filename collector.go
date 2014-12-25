@@ -13,11 +13,13 @@ import (
 )
 
 const (
+	// TODO: refactor for each provider to describe itself
 	STRATEGY_CPU  = "cpu"
 	STRATEGY_CPUS = "cpus"
 	STRATEGY_MEM  = "mem"
 	STRATEGY_SWAP = "swap"
 	STRATEGY_LOAD = "load"
+	STRATEGY_PROC = "proc"
 	PUB_CONSOLE   = "stdout"
 )
 
@@ -66,6 +68,7 @@ func newCollector() (*collector, error) {
 		freq := time.Duration(int32(n)) * time.Second
 		group := strings.ToLower(strings.Trim(strategy[0], " "))
 
+		// TODO: spool these into a map first
 		switch group {
 		case STRATEGY_CPU:
 			c.providers[group] = providers.CPUProvider{
@@ -89,6 +92,11 @@ func newCollector() (*collector, error) {
 			}
 		case STRATEGY_LOAD:
 			c.providers[group] = providers.LoadProvider{
+				Group:     group,
+				Frequency: freq,
+			}
+		case STRATEGY_PROC:
+			c.providers[group] = providers.ProcProvider{
 				Group:     group,
 				Frequency: freq,
 			}
@@ -116,15 +124,16 @@ func (c *collector) collect() error {
 
 	// start the collection routines
 	for _, p := range c.providers {
-		log.Printf("Starting collector for %v", p)
 		go p.Provide(metricCh)
 	}
 
+	// watch magic happen
 	for {
 		select {
 		case err := <-errCh:
-			log.Printf("Error: %v", err)
+			log.Printf("Collector error: %v", err)
 		case col := <-metricCh:
+			// publish collection upon receiving
 			go c.publisher.Publish(col)
 		default:
 			// nothing to do
