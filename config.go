@@ -21,6 +21,7 @@ func init() {
 	flag.StringVar(&conf.Strategy, "strategy", "cpu:1,mem:1,swap:5,load:5", "Provider strategy")
 	flag.StringVar(&conf.Source, "source", hostname, "Event source")
 	flag.StringVar(&conf.Publisher, "publisher", "stdout", "Publishing target")
+	flag.BoolVar(&conf.Verbose, "verbose", false, "Verbose outpur")
 
 	conf.Version = APP_VERSION
 
@@ -35,4 +36,5 @@ type Config struct {
 	Source    string
 	Strategy  string
 	Publisher string
+	Verbose   bool
 }

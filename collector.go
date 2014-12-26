@@ -36,6 +36,7 @@ func newCollector() (*collector, error) {
 		pub, err = publishers.NewInfluxDBPublisher(
 			conf.Source,
 			conf.Publisher,
+			conf.Verbose,
 		)
 	}
 	if err != nil {

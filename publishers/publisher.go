@@ -8,5 +8,5 @@ import (
 type Publisher interface {
 
 	// Publish metric
-	Publish(m *types.MetricCollection) error
+	Publish(m *types.MetricCollection)
 }

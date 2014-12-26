@@ -16,7 +16,7 @@ func NewConsolePublisher() (Publisher, error) {
 
 type ConsolePublisher struct{}
 
-func (p ConsolePublisher) Publish(m *types.MetricCollection) error {
+func (p ConsolePublisher) Publish(m *types.MetricCollection) {
 
 	fmt.Println(LINE)
 	fmt.Printf("Group: %s\n", m.Group)
@@ -27,7 +27,5 @@ func (p ConsolePublisher) Publish(m *types.MetricCollection) error {
 			d.Timestamp.Format("2006-01-02T15:04:05"),
 			d.Dimension, d.Value)
 	}
-
-	return nil
 
 }
