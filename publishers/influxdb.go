@@ -49,7 +49,7 @@ func (p InfluxDBPublisher) Publish(m *types.MetricCollection) {
 	list := make([]*flux.Series, 0)
 	for _, v := range m.Metrics {
 		list = append(list, &flux.Series{
-			Name:    fmt.Sprintf("%s.%s.%s", p.Source, m.Group, v.Dimension),
+			Name:    fmt.Sprintf("src.%s.dim.%s.met.%s", p.Source, m.Group, v.Dimension),
 			Columns: []string{"value"},
 			Points:  [][]interface{}{{v.Value}},
 		})
