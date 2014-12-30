@@ -4,6 +4,15 @@
 
 This agent works in tandem with the [thingz-server](https://github.com/mchmarny/thingz-server) to provide demonstration of both the dynamic modeling to support actuation as well as forensic query and visualization.
 
+It supports following pushers: 
+
+* stdout - output to console
+* kafka - queues messages in Kafka 
+* influxdb - publishes to REST endpoint using InfluxDB API
+
+> Add your own publishers by implementing the publish interface (`publishers/publisher.go`)
+
+
 ## Install
 
 Once you have golang [installed](http://golang.org/doc/install):
@@ -27,9 +36,19 @@ Once these two variables are defined, you can imply start the agent using the fo
 ```
 ./thingz-agent --source="${HOSTNAME}" \
                --strategy=cpu:10,cpus:60,mem:15,swap:30,load:15 \
-               --publisher="http://agent:${THINGZ_SECRET}@${THINGZ_HOST}:8086/thingz" \
+               --publisher="influxdb" \
+               --publisher-args="http://agent:${THINGZ_SECRET}@${THINGZ_HOST}:8086/thingz" \
                --verbose=true
 ```                  
+
+The Kafka publisher flags look like this:
+
+```
+...
+    --publisher="kafka" \
+    --publisher-args="${TOPIC}, ${HOST1}:${PORT}, ${HOST2}:${PORT}"
+```               
+
 
 > Note, the `source` parameter can be anything that uniquely identifies this host. If the `HOSTNAME` includes periods (`.`) you can override this value with your own nickname for this host (e.g. `server-1`)
 
