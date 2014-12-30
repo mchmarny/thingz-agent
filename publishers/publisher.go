@@ -9,4 +9,8 @@ type Publisher interface {
 
 	// Publish metric
 	Publish(m *types.MetricCollection)
+
+	// Finalize tells the publisher to close used resources
+	// and do any general cleanup it needs
+	Finalize()
 }

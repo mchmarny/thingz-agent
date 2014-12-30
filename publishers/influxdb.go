@@ -57,6 +57,11 @@ func (p InfluxDBPublisher) Publish(m *types.MetricCollection) {
 	go p.send(list, false)
 }
 
+// Finalize
+func (p InfluxDBPublisher) Finalize() {
+	log.Println("InfluxDB publisher is done")
+}
+
 func (p InfluxDBPublisher) send(list []*flux.Series, retry bool) {
 	var sendErr error
 	if p.Config.IsUDP {

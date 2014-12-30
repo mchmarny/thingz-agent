@@ -1,7 +1,9 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -39,4 +41,13 @@ func (m *MetricCollection) String() string {
 		"MetricCollection: [ Group:%s, Runtime:%s, Metrics:%v ]",
 		m.Group, m.Runtime, m.Metrics,
 	)
+}
+
+// ToBytes converts content of the current message into byte array
+func (m *MetricCollection) ToBytes() []byte {
+	b, err := json.Marshal(m)
+	if err != nil {
+		log.Printf("unable to marshal: %v", err.Error())
+	}
+	return b
 }

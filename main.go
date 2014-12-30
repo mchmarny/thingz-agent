@@ -4,11 +4,13 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"runtime"
 )
 
 func main() {
 
 	log.Printf("Version: %s", APP_VERSION)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	// make sure we can shutdown gracefully
 	sigCh := make(chan os.Signal, 1)

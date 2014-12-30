@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"log"
+	"os"
+	"os/signal"
 	"strconv"
 	"strings"
 	"time"
@@ -20,7 +22,10 @@ const (
 	STRATEGY_SWAP = "swap"
 	STRATEGY_LOAD = "load"
 	STRATEGY_PROC = "proc"
-	PUB_CONSOLE   = "stdout"
+
+	PUB_CONSOLE  = "stdout"
+	PUB_INFLUXDB = "influxdb"
+	PUB_KAFKA    = "kafka"
 )
 
 func newCollector() (*collector, error) {
@@ -28,17 +33,25 @@ func newCollector() (*collector, error) {
 	// Load publisher
 	var pub publishers.Publisher
 	var err error
-	if conf.Publisher == PUB_CONSOLE {
-		log.Println("Using console publisher")
+
+	switch conf.Publisher {
+	case PUB_CONSOLE:
 		pub, err = publishers.NewConsolePublisher()
-	} else {
-		log.Println("Using InfluxDB publisher")
+	case PUB_INFLUXDB:
 		pub, err = publishers.NewInfluxDBPublisher(
 			conf.Source,
-			conf.Publisher,
+			conf.PublisherArgs,
 			conf.Verbose,
 		)
+	case PUB_KAFKA:
+		pub, err = publishers.NewKafkaPublisher(
+			conf.Source,
+			conf.PublisherArgs,
+		)
+	default:
+		errors.New("Invalid publishing target: " + conf.Publisher)
 	}
+
 	if err != nil {
 		log.Fatalln("Error while creating publisher")
 		return nil, err
@@ -121,7 +134,10 @@ type collector struct {
 func (c *collector) collect() error {
 
 	errCh := make(chan error, 1)
+	sigCh := make(chan os.Signal, 1)
 	metricCh := make(chan *types.MetricCollection, len(c.providers))
+
+	signal.Notify(sigCh, os.Interrupt)
 
 	// start the collection routines
 	for _, p := range c.providers {
@@ -136,6 +152,9 @@ func (c *collector) collect() error {
 		case col := <-metricCh:
 			// publish collection upon receiving
 			go c.publisher.Publish(col)
+		case sig := <-sigCh:
+			log.Printf("Notifying publisher: %v", sig)
+			c.publisher.Finalize()
 		default:
 			// nothing to do
 		}

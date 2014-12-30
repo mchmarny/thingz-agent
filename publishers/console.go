@@ -29,3 +29,8 @@ func (p ConsolePublisher) Publish(m *types.MetricCollection) {
 	}
 
 }
+
+// Finalize
+func (p ConsolePublisher) Finalize() {
+	fmt.Println("Console publisher is done")
+}
