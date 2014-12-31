@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mchmarny/thingz-agent/types"
+	types "github.com/mchmarny/thingz-commons"
 )
 
 const (

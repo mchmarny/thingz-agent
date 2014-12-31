@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	flux "github.com/influxdb/influxdb/client"
-	"github.com/mchmarny/thingz-agent/types"
+	types "github.com/mchmarny/thingz-commons"
 )
 
 // NewInfluxDBPublisher parses connection string to InfluxDB

@@ -3,7 +3,7 @@ package publishers
 import (
 	"fmt"
 
-	"github.com/mchmarny/thingz-agent/types"
+	types "github.com/mchmarny/thingz-commons"
 )
 
 const (

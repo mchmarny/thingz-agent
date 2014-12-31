@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Shopify/sarama"
-	"github.com/mchmarny/thingz-agent/types"
+	kafka "github.com/Shopify/sarama"
+	types "github.com/mchmarny/thingz-commons"
 )
 
 // NewKafkaPublisher factors new KafkaPublisher as Publisher
@@ -31,8 +31,8 @@ func NewKafkaPublisher(src, args string) (Publisher, error) {
 	log.Printf("Kafka - Publishing to topic:%s > %v", topic, brokers)
 
 	// TODO: Parameterize the client configuration
-	producerClient, err := sarama.NewClient(src, brokers,
-		&sarama.ClientConfig{
+	producerClient, err := kafka.NewClient(src, brokers,
+		&kafka.ClientConfig{
 			MetadataRetries:            3,
 			WaitForElection:            3 * time.Second,
 			BackgroundRefreshFrequency: 0,
@@ -43,10 +43,10 @@ func NewKafkaPublisher(src, args string) (Publisher, error) {
 	}
 
 	// TODO: Parameterize the producer configuration
-	producer, err := sarama.NewProducer(producerClient,
-		&sarama.ProducerConfig{
-			Partitioner:     sarama.NewHashPartitioner,
-			RequiredAcks:    sarama.WaitForLocal,
+	producer, err := kafka.NewProducer(producerClient,
+		&kafka.ProducerConfig{
+			Partitioner:     kafka.NewHashPartitioner,
+			RequiredAcks:    kafka.WaitForLocal,
 			MaxMessageBytes: 1000000,
 			RetryBackoff:    500 * time.Millisecond,
 		})
@@ -65,7 +65,7 @@ func NewKafkaPublisher(src, args string) (Publisher, error) {
 // KafkaPublisher represents the Kafka queue type
 type KafkaPublisher struct {
 	Topic    string
-	Producer *sarama.Producer
+	Producer *kafka.Producer
 }
 
 // Publish pushes the individual series to queue
@@ -75,10 +75,10 @@ func (p KafkaPublisher) Publish(in <-chan *types.MetricCollection) {
 		for {
 			select {
 			case msg := <-in:
-				p.Producer.Input() <- &sarama.MessageToSend{
+				p.Producer.Input() <- &kafka.MessageToSend{
 					Topic: p.Topic,
 					Key:   nil, // this will gen a hash on server side
-					Value: sarama.StringEncoder(msg.ToBytes()),
+					Value: kafka.StringEncoder(msg.ToBytes()),
 				}
 			case err := <-p.Producer.Errors():
 				log.Printf("Error while sending message: %v", err)
