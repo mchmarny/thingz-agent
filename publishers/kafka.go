@@ -11,6 +11,8 @@ import (
 )
 
 // NewKafkaPublisher factors new KafkaPublisher as Publisher
+// this will create the producer up front in case we need to panic
+// after that just logging errors
 func NewKafkaPublisher(src, args string) (Publisher, error) {
 
 	if len(src) < 1 || len(args) < 1 {
@@ -53,18 +55,6 @@ func NewKafkaPublisher(src, args string) (Publisher, error) {
 		return nil, err
 	}
 
-	// TODO: Producer events won't fire, figure out better way to capture
-	go func() {
-		for {
-			select {
-			case err := <-producer.Errors():
-				log.Printf("Error on message send: %v", err)
-			case suc := <-producer.Successes():
-				log.Printf("Message sent: %v", suc)
-			}
-		}
-	}()
-
 	return &KafkaPublisher{
 		Topic:    topic,
 		Producer: producer,
@@ -79,13 +69,24 @@ type KafkaPublisher struct {
 }
 
 // Publish pushes the individual series to queue
-func (p KafkaPublisher) Publish(m *types.MetricCollection) {
+func (p KafkaPublisher) Publish(in <-chan *types.MetricCollection) {
 
-	p.Producer.Input() <- &sarama.MessageToSend{
-		Topic: p.Topic,
-		Key:   nil,
-		Value: sarama.StringEncoder(m.ToBytes()),
-	}
+	go func() {
+		for {
+			select {
+			case msg := <-in:
+				p.Producer.Input() <- &sarama.MessageToSend{
+					Topic: p.Topic,
+					Key:   nil, // this will gen a hash on server side
+					Value: sarama.StringEncoder(msg.ToBytes()),
+				}
+			case err := <-p.Producer.Errors():
+				log.Printf("Error while sending message: %v", err)
+			case suc := <-p.Producer.Successes():
+				log.Printf("Message sent: %v", suc)
+			} // select
+		} // for
+	}() // go
 
 }
 

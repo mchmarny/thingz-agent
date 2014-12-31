@@ -3,10 +3,8 @@ package publishers
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	flux "github.com/influxdb/influxdb/client"
 	"github.com/mchmarny/thingz-agent/types"
@@ -14,7 +12,8 @@ import (
 
 // NewInfluxDBPublisher parses connection string to InfluxDB
 // and returned a configured version of the publisher
-func NewInfluxDBPublisher(src, connStr string, verbose bool) (Publisher, error) {
+func NewInfluxDBPublisher(src, connStr string) (Publisher, error) {
+
 	c, err := parseConfig(connStr)
 	if err != nil {
 		log.Fatalf("Invalid connection string: %v", err)
@@ -29,32 +28,29 @@ func NewInfluxDBPublisher(src, connStr string, verbose bool) (Publisher, error) 
 	}
 
 	p := InfluxDBPublisher{
-		Source:  src,
-		Config:  c,
-		Client:  client,
-		Verbose: verbose,
+		Source: src,
+		Config: c,
+		Client: client,
 	}
 
 	return p, nil
 }
 
 type InfluxDBPublisher struct {
-	Source  string
-	Config  *flux.ClientConfig
-	Client  *flux.Client
-	Verbose bool
+	Source string
+	Config *flux.ClientConfig
+	Client *flux.Client
 }
 
-func (p InfluxDBPublisher) Publish(m *types.MetricCollection) {
-	list := make([]*flux.Series, 0)
-	for _, v := range m.Metrics {
-		list = append(list, &flux.Series{
-			Name:    fmt.Sprintf("src.%s.dim.%s.met.%s", p.Source, m.Group, v.Dimension),
-			Columns: []string{"value"},
-			Points:  [][]interface{}{{v.Value}},
-		})
-	}
-	go p.send(list, false)
+func (p InfluxDBPublisher) Publish(in <-chan *types.MetricCollection) {
+	go func() {
+		for {
+			select {
+			case msg := <-in:
+				p.send(p.convert(*msg), false)
+			} // select
+		} // for
+	}() // go
 }
 
 // Finalize
@@ -62,7 +58,25 @@ func (p InfluxDBPublisher) Finalize() {
 	log.Println("InfluxDB publisher is done")
 }
 
-func (p InfluxDBPublisher) send(list []*flux.Series, retry bool) {
+// convert metric collection to series
+func (p *InfluxDBPublisher) convert(m types.MetricCollection) []*flux.Series {
+	list := make([]*flux.Series, 0)
+	for _, v := range m.Metrics {
+		list = append(list, &flux.Series{
+			Name: fmt.Sprintf("src.%s.dim.%s.met.%s",
+				p.Source,
+				m.Group,
+				v.Dimension,
+			),
+			Columns: []string{"value"},
+			Points:  [][]interface{}{{v.Value}},
+		})
+	}
+	return list
+}
+
+// send series or retry if necessary
+func (p *InfluxDBPublisher) send(list []*flux.Series, retry bool) {
 	var sendErr error
 	if p.Config.IsUDP {
 		sendErr = p.Client.WriteSeriesOverUDP(list)
@@ -89,16 +103,13 @@ func parseConfig(connStr string) (*flux.ClientConfig, error) {
 	}
 
 	c := &flux.ClientConfig{}
-
 	c.IsUDP = (u.Scheme == "udp")
 	c.Host = u.Host
 	c.Username = u.User.Username()
+
 	p, _ := u.User.Password()
 	c.Password = p
 	c.Database = strings.Replace(u.Path, "/", "", -1)
-
-	c.HttpClient = http.DefaultClient
-	c.HttpClient.Timeout = 5 * time.Second
 
 	return c, nil
 }

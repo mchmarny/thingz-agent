@@ -4,11 +4,12 @@ import (
 	"flag"
 	"log"
 	"os"
+
+	"github.com/mchmarny/thingz-agent/publishers"
 )
 
 const (
-	APP_VERSION  = "v0.3"
-	FORMAT_ERROR = "Invalid strategy format: "
+	APP_VERSION = "v0.3"
 )
 
 func init() {
@@ -20,7 +21,7 @@ func init() {
 
 	flag.StringVar(&conf.Strategy, "strategy", "cpu:1,mem:1,swap:5,load:5", "Provider strategy")
 	flag.StringVar(&conf.Source, "source", hostname, "Event source")
-	flag.StringVar(&conf.Publisher, "publisher", "stdout", "Publishing target")
+	flag.StringVar(&conf.Publisher, "publisher", publishers.PUB_CONSOLE, "Publishing target")
 	flag.StringVar(&conf.PublisherArgs, "publisher-args", "", "Publishing arguments")
 	flag.BoolVar(&conf.Verbose, "verbose", false, "Verbose outpur")
 
