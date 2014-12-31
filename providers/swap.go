@@ -10,33 +10,27 @@ import (
 
 // SwapProvider is the provider for swap information
 type SwapProvider struct {
-	Group     string
-	Frequency time.Duration
-}
-
-// SetFrequency of execution
-func (p SwapProvider) SetFrequency(f time.Duration) {
-	p.Frequency = f
+	Config *ProviderConfig
 }
 
 // Provide swap metrics
 func (p SwapProvider) Provide(out chan<- *types.MetricCollection) error {
 
-	ticker := time.NewTicker(p.Frequency)
+	ticker := time.NewTicker(p.Config.Frequency)
 
 	for t := range ticker.C {
 
 		src := sigar.Swap{}
 		if err := src.Get(); err != nil {
-			log.Fatal(err)
+			log.Fatalf("Error in %v execution: %v", t, err)
 			return err
 		}
 
-		col := types.NewMetricCollection(p.Group, t)
+		col := types.NewMetricCollection(p.Config.Source, p.Config.Dimension)
 
-		col.Add(types.NewMetric(p.Group, "free", src.Free))
-		col.Add(types.NewMetric(p.Group, "used", src.Used))
-		col.Add(types.NewMetric(p.Group, "total", src.Total))
+		col.Add(types.NewMetricSample("free", src.Free))
+		col.Add(types.NewMetricSample("used", src.Used))
+		col.Add(types.NewMetricSample("total", src.Total))
 
 		out <- col
 

@@ -30,7 +30,7 @@ func GetPublisher(src, pub, args string) (Publisher, error) {
 	case PUB_CONSOLE:
 		return NewConsolePublisher()
 	case PUB_INFLUXDB:
-		return NewInfluxDBPublisher(src, args)
+		return NewInfluxDBPublisher(args)
 	case PUB_KAFKA:
 		return NewKafkaPublisher(src, args)
 	default:

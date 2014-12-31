@@ -24,13 +24,13 @@ func (p ConsolePublisher) Publish(in <-chan *types.MetricCollection) {
 			case msg := <-in:
 
 				fmt.Println(LINE)
-				fmt.Printf("Group: %s\n", msg.Group)
+				fmt.Printf("Source:%s Dimension:%s\n", msg.Source, msg.Dimension)
 				fmt.Println(LINE)
 
 				for _, m := range msg.Metrics {
 					fmt.Printf("%20s %-15s %15v\n",
 						m.Timestamp.Format("2006-01-02T15:04:05"),
-						m.Dimension, m.Value)
+						m.Metric, m.Value)
 				}
 			} // select
 		} // for

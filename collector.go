@@ -23,7 +23,7 @@ func newCollector() (*collector, error) {
 		return nil, err
 	}
 
-	provs, err := providers.GetProviders(conf.Strategy)
+	provs, err := providers.GetProviders(conf.Source, conf.Strategy)
 	if err != nil {
 		log.Fatalln("Error while creating providers")
 		return nil, err

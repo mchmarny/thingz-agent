@@ -10,33 +10,27 @@ import (
 
 // LoadProvider is the provider for load information
 type LoadProvider struct {
-	Group     string
-	Frequency time.Duration
-}
-
-// SetFrequency of execution
-func (p LoadProvider) SetFrequency(f time.Duration) {
-	p.Frequency = f
+	Config *ProviderConfig
 }
 
 // Provide load metrics
 func (p LoadProvider) Provide(out chan<- *types.MetricCollection) error {
 
-	ticker := time.NewTicker(p.Frequency)
+	ticker := time.NewTicker(p.Config.Frequency)
 
 	for t := range ticker.C {
 
 		src := sigar.LoadAverage{}
 		if err := src.Get(); err != nil {
-			log.Fatal(err)
+			log.Fatalf("Error in %v execution: %v", t, err)
 			return err
 		}
 
-		col := types.NewMetricCollection(p.Group, t)
+		col := types.NewMetricCollection(p.Config.Source, p.Config.Dimension)
 
-		col.Add(types.NewMetric(p.Group, "min1", src.One))
-		col.Add(types.NewMetric(p.Group, "min5", src.Five))
-		col.Add(types.NewMetric(p.Group, "min15", src.Fifteen))
+		col.Add(types.NewMetricSample("min1", src.One))
+		col.Add(types.NewMetricSample("min5", src.Five))
+		col.Add(types.NewMetricSample("min15", src.Fifteen))
 
 		out <- col
 

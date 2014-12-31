@@ -22,17 +22,29 @@ const (
 	FORMAT_ERROR = "Invalid strategy format: "
 )
 
+// ProviderConfig is the provider for CPU information
+type ProviderConfig struct {
+	Source    string
+	Dimension string
+	Frequency time.Duration
+}
+
 // Provider describes the metric provider functionality
 type Provider interface {
-
-	// SetFrequency of execution
-	SetFrequency(time.Duration)
 
 	// Provide metric group
 	Provide(out chan<- *types.MetricCollection) error
 }
 
-func GetProviders(plan string) (map[string]Provider, error) {
+func getProviderConfig(src, dim string, freq time.Duration) *ProviderConfig {
+	return &ProviderConfig{
+		Source:    src,
+		Dimension: dim,
+		Frequency: freq,
+	}
+}
+
+func GetProviders(src, plan string) (map[string]Provider, error) {
 
 	if len(plan) < 1 {
 		return nil, errors.New("Plan required")
@@ -57,40 +69,23 @@ func GetProviders(plan string) (map[string]Provider, error) {
 		}
 
 		freq := time.Duration(int32(n)) * time.Second
-		group := strings.ToLower(strings.Trim(strategy[0], " "))
+		dim := strings.ToLower(strings.Trim(strategy[0], " "))
+		conf := getProviderConfig(src, dim, freq)
 
 		// TODO: spool these into a map first
-		switch group {
+		switch dim {
 		case STRATEGY_CPU:
-			provs[group] = CPUProvider{
-				Group:     group,
-				Frequency: freq,
-			}
+			provs[dim] = CPUProvider{conf}
 		case STRATEGY_CPUS:
-			provs[group] = CPUSProvider{
-				Group:     group,
-				Frequency: freq,
-			}
+			provs[dim] = CPUSProvider{conf}
 		case STRATEGY_MEM:
-			provs[group] = MemoryProvider{
-				Group:     group,
-				Frequency: freq,
-			}
+			provs[dim] = MemoryProvider{conf}
 		case STRATEGY_SWAP:
-			provs[group] = SwapProvider{
-				Group:     group,
-				Frequency: freq,
-			}
+			provs[dim] = SwapProvider{conf}
 		case STRATEGY_LOAD:
-			provs[group] = LoadProvider{
-				Group:     group,
-				Frequency: freq,
-			}
+			provs[dim] = LoadProvider{conf}
 		case STRATEGY_PROC:
-			provs[group] = ProcProvider{
-				Group:     group,
-				Frequency: freq,
-			}
+			provs[dim] = ProcProvider{conf}
 		default:
 			log.Fatal(FORMAT_ERROR)
 			return nil, errors.New(FORMAT_ERROR + p)

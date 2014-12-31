@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/mchmarny/thingz-agent/publishers"
 )
@@ -17,7 +18,10 @@ func init() {
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.Lshortfile)
 
-	hostname, _ := os.Hostname()
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
 
 	flag.StringVar(&conf.Strategy, "strategy", "cpu:1,mem:1,swap:5,load:5", "Provider strategy")
 	flag.StringVar(&conf.Source, "source", hostname, "Event source")
@@ -25,9 +29,18 @@ func init() {
 	flag.StringVar(&conf.PublisherArgs, "publisher-args", "", "Publishing arguments")
 	flag.BoolVar(&conf.Verbose, "verbose", false, "Verbose outpur")
 
-	conf.Version = APP_VERSION
-
 	flag.Parse()
+
+	conf.Version = APP_VERSION
+	log.Printf("Version: %s", APP_VERSION)
+
+	if strings.Index(conf.Source, ".") > -1 {
+		conf.Source = strings.Replace(conf.Source, ".", "-", -1)
+		log.Printf(
+			"Source included offending characters [.] using [%s] instead",
+			conf.Source,
+		)
+	}
 
 }
 

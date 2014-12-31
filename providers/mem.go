@@ -10,35 +10,29 @@ import (
 
 // MemoryProvider is the provider for memory information
 type MemoryProvider struct {
-	Group     string
-	Frequency time.Duration
-}
-
-// SetFrequency of execution
-func (p MemoryProvider) SetFrequency(f time.Duration) {
-	p.Frequency = f
+	Config *ProviderConfig
 }
 
 // Provide memory metrics
 func (p MemoryProvider) Provide(out chan<- *types.MetricCollection) error {
 
-	ticker := time.NewTicker(p.Frequency)
+	ticker := time.NewTicker(p.Config.Frequency)
 
 	for t := range ticker.C {
 
 		src := sigar.Mem{}
 		if err := src.Get(); err != nil {
-			log.Fatal(err)
+			log.Fatalf("Error in %v execution: %v", t, err)
 			return err
 		}
 
-		col := types.NewMetricCollection(p.Group, t)
+		col := types.NewMetricCollection(p.Config.Source, p.Config.Dimension)
 
-		col.Add(types.NewMetric(p.Group, "free", src.Free))
-		col.Add(types.NewMetric(p.Group, "used", src.Used))
-		col.Add(types.NewMetric(p.Group, "actual-free", src.ActualFree))
-		col.Add(types.NewMetric(p.Group, "actual-used", src.ActualUsed))
-		col.Add(types.NewMetric(p.Group, "total", src.Total))
+		col.Add(types.NewMetricSample("free", src.Free))
+		col.Add(types.NewMetricSample("used", src.Used))
+		col.Add(types.NewMetricSample("actual-free", src.ActualFree))
+		col.Add(types.NewMetricSample("actual-used", src.ActualUsed))
+		col.Add(types.NewMetricSample("total", src.Total))
 
 		out <- col
 

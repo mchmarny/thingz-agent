@@ -12,7 +12,7 @@ import (
 
 // NewInfluxDBPublisher parses connection string to InfluxDB
 // and returned a configured version of the publisher
-func NewInfluxDBPublisher(src, connStr string) (Publisher, error) {
+func NewInfluxDBPublisher(connStr string) (Publisher, error) {
 
 	c, err := parseConfig(connStr)
 	if err != nil {
@@ -28,7 +28,6 @@ func NewInfluxDBPublisher(src, connStr string) (Publisher, error) {
 	}
 
 	p := InfluxDBPublisher{
-		Source: src,
 		Config: c,
 		Client: client,
 	}
@@ -37,7 +36,6 @@ func NewInfluxDBPublisher(src, connStr string) (Publisher, error) {
 }
 
 type InfluxDBPublisher struct {
-	Source string
 	Config *flux.ClientConfig
 	Client *flux.Client
 }
@@ -64,9 +62,9 @@ func (p *InfluxDBPublisher) convert(m types.MetricCollection) []*flux.Series {
 	for _, v := range m.Metrics {
 		list = append(list, &flux.Series{
 			Name: fmt.Sprintf("src.%s.dim.%s.met.%s",
-				p.Source,
-				m.Group,
-				v.Dimension,
+				m.Source,
+				m.Dimension,
+				v.Metric,
 			),
 			Columns: []string{"value"},
 			Points:  [][]interface{}{{v.Value}},

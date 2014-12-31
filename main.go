@@ -9,7 +9,6 @@ import (
 
 func main() {
 
-	log.Printf("Version: %s", APP_VERSION)
 	runtime.GOMAXPROCS(1) // don't let it go multi-process
 
 	// make sure we can shutdown gracefully

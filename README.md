@@ -12,6 +12,12 @@ It supports following pushers:
 
 > Add your own publishers by implementing the publish interface (`publishers/publisher.go`)
 
+These publishers can be combined into following use-cases 
+
+* `thingz-agent` directly to InfluxDB over HTTP (best for few clients)
+* `thingz-agent` directly to InfluxDB over UDP (best for controlled network environment)
+* `thingz-agent` to Kafka, `thingz-server` from Kafka to InfluxDB over UDP (most scalable but requires additional service and ability to route data from `thingz-agent` to the InfluxDB over UDP)
+
 
 ## Install
 

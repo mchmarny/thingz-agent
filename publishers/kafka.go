@@ -80,10 +80,10 @@ func (p KafkaPublisher) Publish(in <-chan *types.MetricCollection) {
 					Key:   nil, // this will gen a hash on server side
 					Value: kafka.StringEncoder(msg.ToBytes()),
 				}
-			case err := <-p.Producer.Errors():
-				log.Printf("Error while sending message: %v", err)
-			case suc := <-p.Producer.Successes():
-				log.Printf("Message sent: %v", suc)
+			case per := <-p.Producer.Errors():
+				if per != nil {
+					log.Printf("Producer error: %v", per)
+				}
 			} // select
 		} // for
 	}() // go
