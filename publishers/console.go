@@ -3,19 +3,22 @@ package publishers
 import (
 	"fmt"
 
-	types "github.com/mchmarny/thingz-commons"
+	"github.com/mchmarny/thingz-commons/types"
 )
 
 const (
 	LINE = "------------------------------------------------------"
 )
 
+// NewConsolePublisher
 func NewConsolePublisher() (Publisher, error) {
 	return ConsolePublisher{}, nil
 }
 
+// ConsolePublisher
 type ConsolePublisher struct{}
 
+// Publish
 func (p ConsolePublisher) Publish(in <-chan *types.MetricCollection) {
 
 	go func() {

@@ -1,13 +1,13 @@
 package publishers
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 	"strings"
 
 	flux "github.com/influxdb/influxdb/client"
-	types "github.com/mchmarny/thingz-commons"
+	"github.com/mchmarny/thingz-commons"
+	"github.com/mchmarny/thingz-commons/types"
 )
 
 // NewInfluxDBPublisher parses connection string to InfluxDB
@@ -21,7 +21,6 @@ func NewInfluxDBPublisher(connStr string) (Publisher, error) {
 	}
 
 	client, err := flux.NewClient(c)
-
 	if err != nil {
 		log.Fatalf("Error while creating InfluxDB client: %v", err)
 		return nil, err
@@ -35,11 +34,13 @@ func NewInfluxDBPublisher(connStr string) (Publisher, error) {
 	return p, nil
 }
 
+// InfluxDBPublisher
 type InfluxDBPublisher struct {
 	Config *flux.ClientConfig
 	Client *flux.Client
 }
 
+// Publish
 func (p InfluxDBPublisher) Publish(in <-chan *types.MetricCollection) {
 	go func() {
 		for {
@@ -61,11 +62,7 @@ func (p *InfluxDBPublisher) convert(m types.MetricCollection) []*flux.Series {
 	list := make([]*flux.Series, 0)
 	for _, v := range m.Metrics {
 		list = append(list, &flux.Series{
-			Name: fmt.Sprintf("src.%s.dim.%s.met.%s",
-				m.Source,
-				m.Dimension,
-				v.Metric,
-			),
+			Name:    commons.FormatMetricName(m.Source, m.Dimension, v.Metric),
 			Columns: []string{"value"},
 			Points:  [][]interface{}{{v.Value}},
 		})

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/gosigar"
-	types "github.com/mchmarny/thingz-commons"
+	"github.com/mchmarny/thingz-commons/types"
 )
 
 // CPUProvider is the provider for CPU information

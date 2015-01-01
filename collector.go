@@ -7,7 +7,7 @@ import (
 
 	"github.com/mchmarny/thingz-agent/providers"
 	"github.com/mchmarny/thingz-agent/publishers"
-	types "github.com/mchmarny/thingz-commons"
+	"github.com/mchmarny/thingz-commons/types"
 )
 
 func newCollector() (*collector, error) {

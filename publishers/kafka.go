@@ -7,7 +7,7 @@ import (
 	"time"
 
 	kafka "github.com/Shopify/sarama"
-	types "github.com/mchmarny/thingz-commons"
+	"github.com/mchmarny/thingz-commons/types"
 )
 
 // NewKafkaPublisher factors new KafkaPublisher as Publisher

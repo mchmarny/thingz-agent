@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/gosigar"
-	"github.com/mchmarny/thingz-commons"
+	"github.com/mchmarny/thingz-commons/types"
 )
 
 // LoadProvider is the provider for load information
