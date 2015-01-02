@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/gosigar"
-	"github.com/mchmarny/thingz-commons/types"
+	"github.com/mchmarny/thingz-commons"
 )
 
 // MemoryProvider is the provider for memory information
@@ -14,7 +14,7 @@ type MemoryProvider struct {
 }
 
 // Provide memory metrics
-func (p MemoryProvider) Provide(out chan<- *types.MetricCollection) error {
+func (p MemoryProvider) Provide(out chan<- *commons.Metric, outErr chan<- error) {
 
 	ticker := time.NewTicker(p.Config.Frequency)
 
@@ -23,21 +23,15 @@ func (p MemoryProvider) Provide(out chan<- *types.MetricCollection) error {
 		src := sigar.Mem{}
 		if err := src.Get(); err != nil {
 			log.Fatalf("Error in %v execution: %v", t, err)
-			return err
+			outErr <- err
 		}
 
-		col := types.NewMetricCollection(p.Config.Source, p.Config.Dimension)
-
-		col.Add(types.NewMetricSample("free", src.Free))
-		col.Add(types.NewMetricSample("used", src.Used))
-		col.Add(types.NewMetricSample("actual-free", src.ActualFree))
-		col.Add(types.NewMetricSample("actual-used", src.ActualUsed))
-		col.Add(types.NewMetricSample("total", src.Total))
-
-		out <- col
+		out <- commons.NewMetric(p.Config.Source, p.Config.Dimension, "free", src.Free)
+		out <- commons.NewMetric(p.Config.Source, p.Config.Dimension, "used", src.Used)
+		out <- commons.NewMetric(p.Config.Source, p.Config.Dimension, "actual-free", src.ActualFree)
+		out <- commons.NewMetric(p.Config.Source, p.Config.Dimension, "actual-used", src.ActualUsed)
+		out <- commons.NewMetric(p.Config.Source, p.Config.Dimension, "total", src.Total)
 
 	}
-
-	return nil
 
 }

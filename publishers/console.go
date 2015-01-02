@@ -3,11 +3,7 @@ package publishers
 import (
 	"fmt"
 
-	"github.com/mchmarny/thingz-commons/types"
-)
-
-const (
-	LINE = "------------------------------------------------------"
+	"github.com/mchmarny/thingz-commons"
 )
 
 // NewConsolePublisher
@@ -19,22 +15,13 @@ func NewConsolePublisher() (Publisher, error) {
 type ConsolePublisher struct{}
 
 // Publish
-func (p ConsolePublisher) Publish(in <-chan *types.MetricCollection) {
+func (p ConsolePublisher) Publish(in <-chan *commons.Metric, err chan<- error) {
 
 	go func() {
 		for {
 			select {
 			case msg := <-in:
-
-				fmt.Println(LINE)
-				fmt.Printf("Source:%s Dimension:%s\n", msg.Source, msg.Dimension)
-				fmt.Println(LINE)
-
-				for _, m := range msg.Metrics {
-					fmt.Printf("%20s %-15s %15v\n",
-						m.Timestamp.Format("2006-01-02T15:04:05"),
-						m.Metric, m.Value)
-				}
+				fmt.Println(msg)
 			} // select
 		} // for
 	}() // go
@@ -44,4 +31,9 @@ func (p ConsolePublisher) Publish(in <-chan *types.MetricCollection) {
 // Finalize
 func (p ConsolePublisher) Finalize() {
 	fmt.Println("Console publisher is done")
+}
+
+// String
+func (m *ConsolePublisher) String() string {
+	return "Console Publisher"
 }

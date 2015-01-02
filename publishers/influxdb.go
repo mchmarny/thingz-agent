@@ -7,7 +7,6 @@ import (
 
 	flux "github.com/influxdb/influxdb/client"
 	"github.com/mchmarny/thingz-commons"
-	"github.com/mchmarny/thingz-commons/types"
 )
 
 // NewInfluxDBPublisher parses connection string to InfluxDB
@@ -40,13 +39,36 @@ type InfluxDBPublisher struct {
 	Client *flux.Client
 }
 
+// String
+func (m *InfluxDBPublisher) String() string {
+	return "InfluxDB Publisher"
+}
+
 // Publish
-func (p InfluxDBPublisher) Publish(in <-chan *types.MetricCollection) {
+func (p InfluxDBPublisher) Publish(in <-chan *commons.Metric, err chan<- error) {
 	go func() {
 		for {
 			select {
 			case msg := <-in:
-				p.send(p.convert(*msg), false)
+
+				var sendErr error
+				ser := &flux.Series{
+					Name:    msg.FormatFQName(),
+					Columns: []string{"time", "value"},
+					Points:  [][]interface{}{{msg.Timestamp.Unix(), msg.Value}},
+				}
+
+				if p.Config.IsUDP {
+					sendErr = p.Client.WriteSeriesOverUDP([]*flux.Series{ser})
+				} else {
+					sendErr = p.Client.WriteSeries([]*flux.Series{ser})
+				}
+
+				if sendErr != nil {
+					log.Printf("Error on: %v", sendErr)
+					err <- sendErr
+				}
+
 			} // select
 		} // for
 	}() // go
@@ -55,36 +77,6 @@ func (p InfluxDBPublisher) Publish(in <-chan *types.MetricCollection) {
 // Finalize
 func (p InfluxDBPublisher) Finalize() {
 	log.Println("InfluxDB publisher is done")
-}
-
-// convert metric collection to series
-func (p *InfluxDBPublisher) convert(m types.MetricCollection) []*flux.Series {
-	list := make([]*flux.Series, 0)
-	for _, v := range m.Metrics {
-		list = append(list, &flux.Series{
-			Name:    commons.FormatMetricName(m.Source, m.Dimension, v.Metric),
-			Columns: []string{"value"},
-			Points:  [][]interface{}{{v.Value}},
-		})
-	}
-	return list
-}
-
-// send series or retry if necessary
-func (p *InfluxDBPublisher) send(list []*flux.Series, retry bool) {
-	var sendErr error
-	if p.Config.IsUDP {
-		sendErr = p.Client.WriteSeriesOverUDP(list)
-	} else {
-		sendErr = p.Client.WriteSeries(list)
-	}
-
-	if sendErr != nil {
-		log.Printf("Error on: %v - retrying: %v", sendErr, !retry)
-		if !retry {
-			p.send(list, true)
-		}
-	}
 }
 
 // parseConfig parses connStr string into an InfluxDB config

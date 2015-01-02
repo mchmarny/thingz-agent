@@ -3,7 +3,7 @@ package publishers
 import (
 	"errors"
 
-	"github.com/mchmarny/thingz-commons/types"
+	"github.com/mchmarny/thingz-commons"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 type Publisher interface {
 
 	// Publish metric
-	Publish(in <-chan *types.MetricCollection)
+	Publish(in <-chan *commons.Metric, err chan<- error)
 
 	// Finalize tells the publisher to close used resources
 	// and do any general cleanup it needs

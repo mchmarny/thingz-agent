@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/gosigar"
-	"github.com/mchmarny/thingz-commons/types"
+	"github.com/mchmarny/thingz-commons"
 )
 
 // ProcProvider is the provider for CPU information
@@ -17,14 +17,14 @@ type ProcProvider struct {
 }
 
 // Provide CPU metrics
-func (p ProcProvider) Provide(out chan<- *types.MetricCollection) error {
+func (p ProcProvider) Provide(out chan<- *commons.Metric, outErr chan<- error) {
 
 	ticker := time.NewTicker(p.Config.Frequency)
 
 	reg, err := regexp.Compile("[^A-Za-z0-9]+")
 	if err != nil {
 		log.Fatalf("Error while creating regex: %v", err)
-		return err
+		outErr <- err
 	}
 
 	for t := range ticker.C {
@@ -32,10 +32,8 @@ func (p ProcProvider) Provide(out chan<- *types.MetricCollection) error {
 		pids := sigar.ProcList{}
 		if err := pids.Get(); err != nil {
 			log.Fatalf("Error in %v execution: %v", t, err)
-			return err
+			outErr <- err
 		}
-
-		col := types.NewMetricCollection(p.Config.Source, p.Config.Dimension)
 
 		for _, pid := range pids.List {
 			state := sigar.ProcState{}
@@ -48,21 +46,16 @@ func (p ProcProvider) Provide(out chan<- *types.MetricCollection) error {
 				continue
 			}
 
+			// little hack for safe names
 			safe := reg.ReplaceAllString(state.Name, "-")
 			safe = strings.ToLower(strings.Trim(safe, "-"))
 
-			col.Add(
-				types.NewMetricSample(
-					fmt.Sprintf("p%d-%s", pid, safe),
-					mem.Resident/1024),
-			)
+			out <- commons.NewMetric(
+				p.Config.Source,
+				p.Config.Dimension,
+				fmt.Sprintf("p%d-%s", pid, safe),
+				mem.Resident/1024)
 
 		}
-
-		out <- col
-
 	}
-
-	return nil
-
 }

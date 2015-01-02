@@ -2,12 +2,13 @@ package publishers
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	kafka "github.com/Shopify/sarama"
-	"github.com/mchmarny/thingz-commons/types"
+	"github.com/mchmarny/thingz-commons"
 )
 
 // NewKafkaPublisher factors new KafkaPublisher as Publisher
@@ -68,21 +69,36 @@ type KafkaPublisher struct {
 	Producer *kafka.Producer
 }
 
+// String
+func (m *KafkaPublisher) String() string {
+	return "Kafka Publisher"
+}
+
 // Publish pushes the individual series to queue
-func (p KafkaPublisher) Publish(in <-chan *types.MetricCollection) {
+func (p KafkaPublisher) Publish(in <-chan *commons.Metric, err chan<- error) {
 
 	go func() {
 		for {
 			select {
 			case msg := <-in:
+
+				data, jsonErr := msg.ToBytes()
+
+				if jsonErr != nil {
+					log.Printf("Error on marshaling metric: %v", jsonErr)
+					err <- jsonErr
+				}
+
 				p.Producer.Input() <- &kafka.MessageToSend{
 					Topic: p.Topic,
 					Key:   nil, // this will gen a hash on server side
-					Value: kafka.StringEncoder(msg.ToBytes()),
+					Value: kafka.StringEncoder(data),
 				}
+
 			case per := <-p.Producer.Errors():
 				if per != nil {
-					log.Printf("Producer error: %v", per)
+					log.Printf("Publisher error: %v", per)
+					err <- errors.New(fmt.Sprintf("Kafka publisher error: %v", per))
 				}
 			} // select
 		} // for

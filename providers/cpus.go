@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/gosigar"
-	"github.com/mchmarny/thingz-commons/types"
+	"github.com/mchmarny/thingz-commons"
 )
 
 const (
@@ -19,7 +19,7 @@ type CPUSProvider struct {
 }
 
 // Provide CPU metrics
-func (p CPUSProvider) Provide(out chan<- *types.MetricCollection) error {
+func (p CPUSProvider) Provide(out chan<- *commons.Metric, outErr chan<- error) {
 
 	ticker := time.NewTicker(p.Config.Frequency)
 
@@ -28,24 +28,53 @@ func (p CPUSProvider) Provide(out chan<- *types.MetricCollection) error {
 		cpul := sigar.CpuList{}
 		if err := cpul.Get(); err != nil {
 			log.Fatalf("Error in %v execution: %v", t, err)
-			return err
+			outErr <- err
 		}
-
-		col := types.NewMetricCollection(p.Config.Source, p.Config.Dimension)
 
 		for i, c := range cpul.List {
-			col.Add(types.NewMetricSample(fmt.Sprintf("total%s%d", INDEX_SEPERATOR, i), c.Total()))
-			col.Add(types.NewMetricSample(fmt.Sprintf("user%s%d", INDEX_SEPERATOR, i), c.User))
-			col.Add(types.NewMetricSample(fmt.Sprintf("nice%s%d", INDEX_SEPERATOR, i), c.Nice))
-			col.Add(types.NewMetricSample(fmt.Sprintf("sys%s%d", INDEX_SEPERATOR, i), c.Sys))
-			col.Add(types.NewMetricSample(fmt.Sprintf("idle%s%d", INDEX_SEPERATOR, i), c.Idle))
-			col.Add(types.NewMetricSample(fmt.Sprintf("wait%s%d", INDEX_SEPERATOR, i), c.Wait))
+			out <- commons.NewMetric(
+				p.Config.Source,
+				p.Config.Dimension,
+				fmt.Sprintf("total%s%d", INDEX_SEPERATOR, i),
+				c.Total(),
+			)
+
+			out <- commons.NewMetric(
+				p.Config.Source,
+				p.Config.Dimension,
+				fmt.Sprintf("user%s%d", INDEX_SEPERATOR, i),
+				c.User,
+			)
+
+			out <- commons.NewMetric(
+				p.Config.Source,
+				p.Config.Dimension,
+				fmt.Sprintf("nice%s%d", INDEX_SEPERATOR, i),
+				c.Nice,
+			)
+
+			out <- commons.NewMetric(
+				p.Config.Source,
+				p.Config.Dimension,
+				fmt.Sprintf("sys%s%d", INDEX_SEPERATOR, i),
+				c.Sys,
+			)
+
+			out <- commons.NewMetric(
+				p.Config.Source,
+				p.Config.Dimension,
+				fmt.Sprintf("idle%s%d", INDEX_SEPERATOR, i),
+				c.Idle,
+			)
+
+			out <- commons.NewMetric(
+				p.Config.Source,
+				p.Config.Dimension,
+				fmt.Sprintf("wait%s%d", INDEX_SEPERATOR, i),
+				c.Wait,
+			)
 		}
 
-		out <- col
-
 	}
-
-	return nil
 
 }

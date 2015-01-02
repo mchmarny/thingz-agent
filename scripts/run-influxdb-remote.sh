@@ -3,7 +3,7 @@
 DIR="$(pwd)"
 
 $DIR/thingz-agent --source="${HOSTNAME}" \
-                  --strategy=cpu:10,cpus:60,mem:15,swap:30,load:15 \
+                  --strategy=cpu:3,cpus:60,mem:3,swap:30,load:5 \
                   --publisher="influxdb" \
-                  --publisher-args="http://agent:${THINGZ_SECRET}@${THINGZ_HOST}:8086/thingz" \
+                  --publisher-args="udp://agent:${THINGZ_SECRET}@${THINGZ_HOST}:4444/thingz" \
                   --verbose=true

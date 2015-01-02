@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mchmarny/thingz-commons/types"
+	"github.com/mchmarny/thingz-commons"
 )
 
 const (
@@ -33,7 +33,7 @@ type ProviderConfig struct {
 type Provider interface {
 
 	// Provide metric group
-	Provide(out chan<- *types.MetricCollection) error
+	Provide(out chan<- *commons.Metric, err chan<- error)
 }
 
 func getProviderConfig(src, dim string, freq time.Duration) *ProviderConfig {

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/gosigar"
-	"github.com/mchmarny/thingz-commons/types"
+	"github.com/mchmarny/thingz-commons"
 )
 
 // LoadProvider is the provider for load information
@@ -14,7 +14,7 @@ type LoadProvider struct {
 }
 
 // Provide load metrics
-func (p LoadProvider) Provide(out chan<- *types.MetricCollection) error {
+func (p LoadProvider) Provide(out chan<- *commons.Metric, outErr chan<- error) {
 
 	ticker := time.NewTicker(p.Config.Frequency)
 
@@ -23,19 +23,13 @@ func (p LoadProvider) Provide(out chan<- *types.MetricCollection) error {
 		src := sigar.LoadAverage{}
 		if err := src.Get(); err != nil {
 			log.Fatalf("Error in %v execution: %v", t, err)
-			return err
+			outErr <- err
 		}
 
-		col := types.NewMetricCollection(p.Config.Source, p.Config.Dimension)
-
-		col.Add(types.NewMetricSample("min1", src.One))
-		col.Add(types.NewMetricSample("min5", src.Five))
-		col.Add(types.NewMetricSample("min15", src.Fifteen))
-
-		out <- col
+		out <- commons.NewMetric(p.Config.Source, p.Config.Dimension, "min1", src.One)
+		out <- commons.NewMetric(p.Config.Source, p.Config.Dimension, "min5", src.Five)
+		out <- commons.NewMetric(p.Config.Source, p.Config.Dimension, "min15", src.Fifteen)
 
 	}
-
-	return nil
 
 }

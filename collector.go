@@ -7,7 +7,7 @@ import (
 
 	"github.com/mchmarny/thingz-agent/providers"
 	"github.com/mchmarny/thingz-agent/publishers"
-	"github.com/mchmarny/thingz-commons/types"
+	"github.com/mchmarny/thingz-commons"
 )
 
 func newCollector() (*collector, error) {
@@ -48,26 +48,29 @@ type collector struct {
 func (c *collector) collect() error {
 
 	sigCh := make(chan os.Signal, 1)
-	metricCh := make(chan *types.MetricCollection, len(c.providers))
-	errCh := make(chan error, len(c.providers))
+	metricCh := make(chan *commons.Metric, len(c.providers))
+	prvErrCh := make(chan error, len(c.providers))
+	pubErrCh := make(chan error, len(c.providers))
 
 	signal.Notify(sigCh, os.Interrupt)
 
 	// start the collection routines
 	for _, p := range c.providers {
-		go p.Provide(metricCh)
+		go p.Provide(metricCh, prvErrCh)
 	}
 
 	// send provider output to publisher
-	go c.publisher.Publish(metricCh)
+	go c.publisher.Publish(metricCh, pubErrCh)
 
 	// watch magic happen... or shit fall apart
 	for {
 		select {
-		case err := <-errCh:
-			log.Printf("Collector error: %v", err)
+		case prvErr := <-prvErrCh:
+			log.Printf("Provider error: %v", prvErr)
+		case pubErr := <-pubErrCh:
+			log.Printf("Publisher error: %v", pubErr)
 		case sig := <-sigCh:
-			log.Printf("Notifying publisher: %v", sig)
+			log.Printf("Finalizing %v due to %v", c.publisher, sig)
 			c.publisher.Finalize()
 		default:
 			// nothing to do

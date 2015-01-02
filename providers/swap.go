@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry/gosigar"
-	"github.com/mchmarny/thingz-commons/types"
+	"github.com/mchmarny/thingz-commons"
 )
 
 // SwapProvider is the provider for swap information
@@ -14,7 +14,7 @@ type SwapProvider struct {
 }
 
 // Provide swap metrics
-func (p SwapProvider) Provide(out chan<- *types.MetricCollection) error {
+func (p SwapProvider) Provide(out chan<- *commons.Metric, outErr chan<- error) {
 
 	ticker := time.NewTicker(p.Config.Frequency)
 
@@ -23,19 +23,12 @@ func (p SwapProvider) Provide(out chan<- *types.MetricCollection) error {
 		src := sigar.Swap{}
 		if err := src.Get(); err != nil {
 			log.Fatalf("Error in %v execution: %v", t, err)
-			return err
+			outErr <- err
 		}
 
-		col := types.NewMetricCollection(p.Config.Source, p.Config.Dimension)
-
-		col.Add(types.NewMetricSample("free", src.Free))
-		col.Add(types.NewMetricSample("used", src.Used))
-		col.Add(types.NewMetricSample("total", src.Total))
-
-		out <- col
+		out <- commons.NewMetric(p.Config.Source, p.Config.Dimension, "free", src.Free)
+		out <- commons.NewMetric(p.Config.Source, p.Config.Dimension, "used", src.Used)
+		out <- commons.NewMetric(p.Config.Source, p.Config.Dimension, "total", src.Total)
 
 	}
-
-	return nil
-
 }

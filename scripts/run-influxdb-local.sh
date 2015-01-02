@@ -2,8 +2,8 @@
 
 DIR="$(pwd)"
 
-$DIR/thingz-agent --source=demo \
-                  --strategy=cpu:3,cpus:5,mem:4,swap:5,load:5 \
+$DIR/thingz-agent --source=mbp13 \
+                  --strategy=cpu:1,cpus:1,mem:1,swap:5,load:5 \
                   --publisher="influxdb" \
                   --publisher-args="http://thingz:thingz@localhost:8086/thingz" \
                   --verbose=true
