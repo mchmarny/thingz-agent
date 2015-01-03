@@ -21,13 +21,14 @@ These publishers can be combined into following use-cases
 
 ## Install
 
-Once you have golang [installed](http://golang.org/doc/install):
+To install agent locally (depends on golang [installed](http://golang.org/doc/install)):
 
 ```
 go get github.com/mchmarny/thingz-agent
 go install github.com/mchmarny/thingz-agent
 ```
 
+To deploy multiple instances of the `thingz-agent` on AWS EC2 execute the `scripts/deploy-agent-aws.sh` script.
 
 ## Run
 
