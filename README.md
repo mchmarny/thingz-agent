@@ -18,6 +18,19 @@ These publishers can be combined into following use-cases
 * `thingz-agent` directly to InfluxDB over UDP (best for controlled network environment)
 * `thingz-agent` to Kafka, `thingz-server` from Kafka to InfluxDB over UDP (most scalable but requires additional service and ability to route data from `thingz-agent` to the InfluxDB over UDP)
 
+## Strategies 
+
+Strategies tell the agent what dimensions and how often it should report to the `thingz-server`. You specify a strategy by defining one or more of Key/Value pares where the key is the dimension and the value is the reporting frequency in seconds.
+
+> Available Dimensions:
+
+
+* **cpu**  - user, nice, sys, idle, wait, total
+* **cpus** - just like above but for each CPU individually
+* **mem**  - free, used, actual free, actual used, total
+* **swap** - free, used, total
+* **load** - avg for 1, 5, 15 min
+* **proc** - process name and resident memory
 
 ## Install
 
@@ -59,17 +72,5 @@ The Kafka publisher flags look like this:
 
 > Note, the `source` parameter can be anything that uniquely identifies this host. If the `HOSTNAME` includes periods (`.`) you can override this value with your own nickname for this host (e.g. `server-1`)
 
-## Strategies 
 
-Strategies tell the agent what dimensions and how often it should report to the `thingz-server`. You specify a strategy by defining one or more of Key/Value pares where the key is the dimension and the value is the reporting frequency in seconds.
-
-> Available Dimensions:
-
-
-* **cpu**  - user, nice, sys, idle, wait, total
-* **cpus** - just like above but for each CPU individually
-* **mem**  - free, used, actual free, actual used, total
-* **swap** - free, used, total
-* **load** - avg for 1, 5, 15 min
-* **proc** - process name and resident memory
 
