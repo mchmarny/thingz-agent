@@ -6,9 +6,9 @@ This agent works in tandem with the [thingz-server](https://github.com/mchmarny/
 
 It supports following pushers: 
 
-* stdout - output to console
-* kafka - queues messages in Kafka 
-* influxdb - publishes to REST endpoint using InfluxDB API
+* `stdout` - output to console
+* `kafka` - queues messages in Kafka 
+* `influxdb` - publishes to REST endpoint using InfluxDB API
 
 > Add your own publishers by implementing the publish interface (`publishers/publisher.go`)
 
