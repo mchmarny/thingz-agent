@@ -9,6 +9,7 @@ It supports following pushers:
 * `stdout` - output to console
 * `kafka` - queues messages in Kafka 
 * `influxdb` - publishes to REST endpoint using InfluxDB API
+* [ws-collector](https://github.com/cloudfoundry-community/ws-collector) - transparent WebSocket gateway to Kafka
 
 > Add your own publishers by implementing the publish interface (`publishers/publisher.go`)
 
