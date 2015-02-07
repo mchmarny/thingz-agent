@@ -10,6 +10,7 @@ const (
 	PUB_CONSOLE  = "stdout"
 	PUB_INFLUXDB = "influxdb"
 	PUB_KAFKA    = "kafka"
+	PUB_WS       = "websocket"
 )
 
 // Publisher describes the metric publisher functionality
@@ -33,6 +34,8 @@ func GetPublisher(src, pub, args string) (Publisher, error) {
 		return NewInfluxDBPublisher(args)
 	case PUB_KAFKA:
 		return NewKafkaPublisher(src, args)
+	case PUB_WS:
+		return NewWebsocketPublisher(args)
 	default:
 		return nil, errors.New("Invalid publishing target: " + pub)
 	}
